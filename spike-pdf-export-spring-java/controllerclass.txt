@@ -1,0 +1,50 @@
+package textPackage;
+
+import java.io.ByteArrayInputStream;
+import java.util.List;
+
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class RunnerController {
+
+	
+	@RequestMapping(value = "/pdfreport", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<InputStreamResource> citiesReport(@RequestBody List<List<String>> cities) {
+
+		System.out.println("here cities"+cities);
+
+        ByteArrayInputStream bis = GeneratePdfReport.citiesReport(cities);
+
+        //HttpHeaders headers = new HttpHeaders();
+        //headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
+
+        return ResponseEntity
+                .ok()
+                .headers(getPDFHeaders("Situation_test.pdf"))
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+        
+     //   return new ResponseEntity<>(new InputStreamResource(bis), getPDFHeaders("Situation_test.pdf"), HttpStatus.OK);
+    }
+	
+	
+	public static HttpHeaders getPDFHeaders(String fileName) {
+	    HttpHeaders head = new HttpHeaders();
+	    head.setContentType(MediaType.parseMediaType("application/pdf"));
+	    //head.add("content-disposition", "attachment; filename=" + fileName);
+	    head.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+	    head.setContentDispositionFormData(fileName, fileName);
+	    head.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+	    return head;
+	}
+}
